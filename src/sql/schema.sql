@@ -1,12 +1,10 @@
-/*All User's gets stored in APP_USER table*/
-
 CREATE TABLE USER (
   `user_id`    BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `email`      VARCHAR(30)  NOT NULL,
   `password`   VARCHAR(100) NOT NULL,
   `first_name` VARCHAR(30)  NOT NULL,
   `last_name`  VARCHAR(30)  NOT NULL,
-  `active`     TINYINT(1)   NOT NULL DEFAULT '0',
+  `active`     TINYINT(1)   NOT NULL DEFAULT '1',
   `created`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated`    DATETIME              DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
@@ -39,25 +37,62 @@ CREATE TABLE persistent_logins (
   PRIMARY KEY (series)
 );
 
-/* Populate ROLE Table */
-INSERT INTO ROLE (type)
-VALUES ('ADMIN');
-INSERT INTO ROLE (type)
-VALUES ('ADVANCED_TUTOR');
-INSERT INTO ROLE (type)
-VALUES ('TUTOR');
-INSERT INTO ROLE (type)
-VALUES ('STUDENT');
+CREATE TABLE `test` (
+  `test_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `tutor_id` bigint(20) NOT NULL,
+  `title` varchar(45) NOT NULL,
+  `description` text,
+  `question_time` int(11) DEFAULT '120',
+  `active` tinyint(4) NOT NULL DEFAULT '1',
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`test_id`),
+  UNIQUE KEY `test_id_UNIQUE` (`test_id`),
+  UNIQUE KEY `title_UNIQUE` (`title`),
+  KEY `tutor_id_idx` (`tutor_id`),
+  CONSTRAINT `tutor_id` FOREIGN KEY (`tutor_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) DEFAULT CHARSET=utf8;
 
-/* Populate one Admin User which will further create other users for the application using GUI */
-INSERT INTO USER (email, password, first_name, last_name, active)
-VALUES ('ievgen.bykov@gmail.com', '$2a$10$doPCU9lCJ2Q7w6FyfEM6TOcyL.5ovrhO3BFQzdIpvkaaaHV4zlYzC', 'Ievgen', 'Bykov', 1);
+CREATE TABLE `question` (
+  `question_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `test_id` bigint(20) NOT NULL,
+  `question` text NOT NULL,
+  `active` tinyint(4) NOT NULL DEFAULT '1',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`question_id`),
+  UNIQUE KEY `question_id_UNIQUE` (`question_id`),
+  KEY `test_id_idx` (`test_id`),
+  CONSTRAINT `test_id` FOREIGN KEY (`test_id`) REFERENCES `test` (`test_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) DEFAULT CHARSET=utf8;
 
-/* Populate JOIN Table */
-INSERT INTO USER_ROLE (user_id, role_id)
-  SELECT
-    user.user_id,
-    ROLE.role_id
-  FROM user user, role role
-  WHERE user.email = 'ievgen.bykov@gmail.com' AND role.type = 'ADMIN';
+CREATE TABLE `answer` (
+  `answer_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `question_id` bigint(20) NOT NULL,
+  `text` text NOT NULL,
+  `correct` tinyint(4) NOT NULL DEFAULT '0',
+  `active` tinyint(4) DEFAULT '1',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `answercol` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`answer_id`),
+  UNIQUE KEY `answer_id_UNIQUE` (`answer_id`),
+  KEY `question_id_idx` (`question_id`),
+  CONSTRAINT `question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`question_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) DEFAULT CHARSET=utf8;
 
+CREATE TABLE `result` (
+  `result_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) NOT NULL,
+  `test_id` bigint(20) NOT NULL,
+  `result` varchar(45) NOT NULL,
+  `active` tinyint(4) NOT NULL DEFAULT '1',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`result_id`),
+  UNIQUE KEY `result_id_UNIQUE` (`result_id`),
+  KEY `user_id_idx` (`user_id`),
+  KEY `test_id_idx` (`test_id`),
+  CONSTRAINT `test_id_fk` FOREIGN KEY (`test_id`) REFERENCES `test` (`test_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) CHARSET=utf8;

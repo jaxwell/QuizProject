@@ -64,10 +64,11 @@ public class MainController {
     @RequestMapping(value = {"/signup"}, method = RequestMethod.GET)
     public String newUser(ModelMap model) {
         User user = new User();
-        model.addAttribute("user", user);
+        // FIXME Rework without hidden field
         Set<Role> roleSet = new HashSet<>();
         roleSet.add(roleService.findByType("STUDENT"));
         user.setRoles(roleSet);
+        model.addAttribute("user", user);
 //        model.addAttribute("loggedinuser", getPrincipal());
         return "signup";
     }
